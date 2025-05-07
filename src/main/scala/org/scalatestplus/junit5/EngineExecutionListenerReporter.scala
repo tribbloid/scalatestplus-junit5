@@ -60,6 +60,23 @@ private[junit5] class EngineExecutionListenerReporter(
 
   override def apply(event: Event): Unit = {
 
+    def getQualifiedName(
+        suiteID: String,
+        suiteName: String,
+        suiteClassName: Option[String],
+        testName: String,
+        ordinal: Ordinal
+    ) = {
+      val qualifiedName = if (suiteClassName.contains(clzDesc.suiteClass.getName)) {
+        testName
+      } else {
+        // nested test case, demands a qualified name
+        val idWithoutClassName = suiteID.stripPrefix(clzDesc.suiteClass.getName).stripPrefix("$")
+        s"$idWithoutClassName-$testName"
+      }
+      qualifiedName
+    }
+
     event match {
 
       case TestStarting(
@@ -76,7 +93,10 @@ private[junit5] class EngineExecutionListenerReporter(
             threadName,
             timeStamp
           ) =>
-        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
+
+        val qualifiedName: String = getQualifiedName(suiteId, suiteName, suiteClassName, testName, ordinal)
+        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, qualifiedName, location)
+
         clzDesc.addChild(testDesc)
         listener.dynamicTestRegistered(testDesc)
         listener.executionStarted(testDesc)
@@ -100,8 +120,9 @@ private[junit5] class EngineExecutionListenerReporter(
             threadName,
             timeStamp
           ) =>
+        val qualifiedName = getQualifiedName(suiteId, suiteName, suiteClassName, testName, ordinal)
+        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, qualifiedName, location)
         val throwableOrNull = throwable.orNull
-        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
         listener.executionFinished(testDesc, TestExecutionResult.failed(throwableOrNull))
 
       case TestSucceeded(
@@ -120,7 +141,8 @@ private[junit5] class EngineExecutionListenerReporter(
             threadName,
             timeStamp
           ) =>
-        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
+        val qualifiedName = getQualifiedName(suiteId, suiteName, suiteClassName, testName, ordinal)
+        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, qualifiedName, location)
         listener.executionFinished(testDesc, TestExecutionResult.successful())
 
       case TestIgnored(
@@ -136,11 +158,12 @@ private[junit5] class EngineExecutionListenerReporter(
             threadName,
             timeStamp
           ) =>
-        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
+        val qualifiedName = getQualifiedName(suiteId, suiteName, suiteClassName, testName, ordinal)
+        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, qualifiedName, location)
         listener.executionSkipped(testDesc, "Test ignored.")
 
       case TestCanceled(
-            ordering,
+            ordinal,
             message,
             suiteName,
             suiteId,
@@ -157,7 +180,8 @@ private[junit5] class EngineExecutionListenerReporter(
             threadName,
             timeStamp
           ) =>
-        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
+        val qualifiedName = getQualifiedName(suiteId, suiteName, suiteClassName, testName, ordinal)
+        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, qualifiedName, location)
         listener.executionSkipped(
           testDesc,
           throwable.map(t => "Test canceled: " + t.getMessage).getOrElse("Test canceled.")
@@ -178,7 +202,8 @@ private[junit5] class EngineExecutionListenerReporter(
             threadName,
             timeStamp
           ) =>
-        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
+        val qualifiedName = getQualifiedName(suiteId, suiteName, suiteClassName, testName, ordinal)
+        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, qualifiedName, location)
         listener.executionSkipped(testDesc, "Test pending.")
 
       case SuiteAborted(
