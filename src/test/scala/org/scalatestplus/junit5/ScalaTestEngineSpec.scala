@@ -6,6 +6,7 @@ import org.junit.platform.engine.discovery.DiscoverySelectors.{selectClasspathRo
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder.request
 import org.scalatest.{BeforeAndAfterAll, funspec}
 import org.scalatestplus.junit5.helpers.HappySuite
+import org.scalatestplus.junit5.nested.OuterSuite
 
 import java.nio.file.{Files, Paths}
 import scala.collection.JavaConverters._
@@ -75,6 +76,31 @@ class ScalaTestEngineSpec extends funspec.AnyFunSpec with BeforeAndAfterAll {
 
         val engineDescriptor = engine.discover(discoveryRequest, UniqueId.forEngine(engine.getId()))
         assert(engineDescriptor.getChildren.asScala.isEmpty)
+      }
+    }
+
+    describe("nested suite") {
+      it("should discover nested suites") {
+
+        //        val classPathRoot = classOf[
+        //          OuterSuite
+        //        ].getProtectionDomain.getCodeSource.getLocation
+        val discoveryRequest = request
+          .selectors(
+            //            selectClass(classOf[OuterSuite])
+            selectPackage(classOf[OuterSuite].getPackageName)
+            //            selectClasspathRoots(
+            //              java.util.Collections.singleton(Paths.get(classPathRoot.toURI))
+            //            )
+          )
+          .build()
+        val engineDescriptor =
+          engine.discover(discoveryRequest, UniqueId.forEngine(engine.getId()))
+        assert(
+          engineDescriptor.getChildren.asScala.exists(td =>
+            td.asInstanceOf[ScalaTestClassDescriptor].suiteClass == classOf[HappySuite]
+          )
+        )
       }
     }
   }
