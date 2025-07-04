@@ -76,7 +76,17 @@ private[junit5] class EngineExecutionListenerReporter(
             threadName,
             timeStamp
           ) =>
-        val testDesc = createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
+
+        val testDesc: ScalaTestDescriptor = if (suiteClassName.contains(clzDesc.suiteClass.getName)) {
+
+          createTestDescriptor(suiteId, suiteName, suiteClassName, testName, location)
+        } else {
+          // nested test case, demands a qualified name
+          val serialQualifier = clzDesc.getChildren.size()
+          val qualifiedName = s"[$serialQualifier] $suiteName-$testName"
+          createTestDescriptor(suiteId, suiteName, suiteClassName, qualifiedName, location)
+        }
+
         clzDesc.addChild(testDesc)
         listener.dynamicTestRegistered(testDesc)
         listener.executionStarted(testDesc)

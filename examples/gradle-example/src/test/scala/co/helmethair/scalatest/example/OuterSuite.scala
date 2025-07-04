@@ -10,16 +10,20 @@ object OuterSuite {
   }
 
   object I1 extends Inner
-  object I2 extends Inner
 }
 class OuterSuite extends AnyFunSpec {
 
+  val i2 = new OuterSuite.Inner
+
   override def nestedSuites: IndexedSeq[Suite] = {
-    println("hit!")
+
+    val i3 = new OuterSuite.Inner
 
     IndexedSeq(
-      OuterSuite.I1,
-      OuterSuite.I2
+      OuterSuite.I1, // object
+      i2, // member
+      i3, // local instance
+      new OuterSuite.Inner() // ad-hoc
     )
   }
 

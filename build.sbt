@@ -32,7 +32,8 @@ crossScalaVersions := List(
   "2.11.12",
   "2.12.20",
   "2.13.16",
-  "3.3.5"
+  "3.3.6",
+  "3.7.1"
 )
 
 scalacOptions ++= Seq("-target:jvm-1.8")
@@ -134,7 +135,12 @@ pomExtra := (
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 // Temporary disable publishing of doc in dotty, can't get it to build.
-Compile / packageDoc / publishArtifact := !scalaBinaryVersion.value.startsWith("3")
+//Compile / packageDoc / publishArtifact := !scalaBinaryVersion.value.startsWith("3")
+Compile / packageDoc / publishArtifact := true
+Compile / packageSrc / publishArtifact := true
+
+publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
+publishM2Configuration := publishM2Configuration.value.withOverwrite(true)
 
 def docTask(docDir: File, resDir: File, projectName: String): File = {
   val docLibDir = docDir / "lib"
@@ -162,7 +168,7 @@ def docTask(docDir: File, resDir: File, projectName: String): File = {
   docDir
 }
 
-Compile / doc := docTask((Compile / doc).value, (Compile / sourceDirectory).value, name.value)
+//Compile / doc := docTask((Compile / doc).value, (Compile / sourceDirectory).value, name.value)
 
 Compile / doc / scalacOptions := Seq(
   "-doc-title",
