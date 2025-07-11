@@ -46,7 +46,7 @@ class ScalaTestEngineIntegration extends funspec.AnyFunSpec with BeforeAndAfterA
     val result = org.scalatest.tools.Runner.run(
       Array(
         "-R",
-        integrationPath.resolve("org/scalatestplus/junit5/integration").toString,
+        path.resolve("org/scalatestplus/junit5/integration").toString,
         "-s",
         "org.scalatestplus.junit5.integration.NestedSuite",
         "-oF"
